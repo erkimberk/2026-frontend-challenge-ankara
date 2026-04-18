@@ -16,6 +16,37 @@ const getRecordSummary = (record) => {
   )
 }
 
+const getStatusChip = (record) => {
+  const confidence = (record.confidence || '').toString().toLowerCase()
+  const urgency = (record.urgency || '').toString().toLowerCase()
+
+  if (record.type === 'anonymous_tip' && confidence) {
+    if (confidence === 'high') {
+      return <Chip size="small" label="Güven: High" color="error" />
+    }
+    if (confidence === 'medium') {
+      return <Chip size="small" label="Güven: Medium" color="warning" />
+    }
+    if (confidence === 'low') {
+      return <Chip size="small" label="Güven: Low" color="success" />
+    }
+  }
+
+  if (record.type === 'message' && urgency) {
+    if (urgency === 'high') {
+      return <Chip size="small" label="Aciliyet: High" color="error" />
+    }
+    if (urgency === 'medium') {
+      return <Chip size="small" label="Aciliyet: Medium" color="warning" />
+    }
+    if (urgency === 'low') {
+      return <Chip size="small" label="Aciliyet: Low" color="success" />
+    }
+  }
+
+  return null
+}
+
 function LinkedRecordsPanel({ selectedPerson, relatedRecords }) {
   if (!selectedPerson) {
     return (
@@ -45,7 +76,10 @@ function LinkedRecordsPanel({ selectedPerson, relatedRecords }) {
             <Paper key={record.id} variant="outlined" sx={{ p: 1.4, borderRadius: 2 }}>
               <Stack spacing={1}>
                 <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
-                  <Chip size="small" label={record.sourceLabel} color="primary" variant="outlined" />
+                  <Stack direction="row" spacing={0.8} alignItems="center" sx={{ flexWrap: 'wrap' }}>
+                    <Chip size="small" label={record.sourceLabel} color="primary" variant="outlined" />
+                    {getStatusChip(record)}
+                  </Stack>
                   <Stack direction="row" spacing={1.2} alignItems="center">
                     <AccessTimeRoundedIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
                     <Typography variant="caption" color="text.secondary">

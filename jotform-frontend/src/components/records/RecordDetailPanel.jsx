@@ -1,7 +1,8 @@
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded'
 import PlaceRoundedIcon from '@mui/icons-material/PlaceRounded'
 import RoomRoundedIcon from '@mui/icons-material/RoomRounded'
-import { Chip, Divider, Paper, Stack, Typography } from '@mui/material'
+import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded'
+import { Box, Chip, Divider, Link, Paper, Stack, Typography } from '@mui/material'
 
 function BilgiSatırı({ etiket, değer }) {
   return (
@@ -12,6 +13,48 @@ function BilgiSatırı({ etiket, değer }) {
       <Typography variant="body2">{değer || 'Belirtilmedi'}</Typography>
     </Stack>
   )
+}
+
+function parseCoordinates(rawValue) {
+  if (!rawValue) {
+    return null
+  }
+
+  const parts = rawValue
+    .toString()
+    .split(',')
+    .map((item) => item.trim())
+
+  if (parts.length !== 2) {
+    return null
+  }
+
+  const lat = Number(parts[0])
+  const lng = Number(parts[1])
+
+  if (Number.isNaN(lat) || Number.isNaN(lng)) {
+    return null
+  }
+
+  return { lat, lng }
+}
+
+function getDurumRengi(level) {
+  const value = (level || '').toString().toLowerCase()
+
+  if (value === 'high') {
+    return 'error'
+  }
+
+  if (value === 'medium') {
+    return 'warning'
+  }
+
+  if (value === 'low') {
+    return 'success'
+  }
+
+  return 'default'
 }
 
 function RecordDetailPanel({ kayit }) {
@@ -25,6 +68,13 @@ function RecordDetailPanel({ kayit }) {
       </Paper>
     )
   }
+
+  const coordinates = parseCoordinates(kayit.coordinates)
+  const mapQuery = coordinates ? `${coordinates.lat},${coordinates.lng}` : ''
+  const mapEmbedUrl = coordinates
+    ? `https://maps.google.com/maps?q=${encodeURIComponent(mapQuery)}&z=15&output=embed`
+    : ''
+  const mapOpenUrl = coordinates ? `https://www.google.com/maps?q=${encodeURIComponent(mapQuery)}` : ''
 
   return (
     <Paper sx={{ p: 2.2, height: '100%' }}>
@@ -58,7 +108,17 @@ function RecordDetailPanel({ kayit }) {
             <Divider />
             <BilgiSatırı etiket="Gönderen" değer={kayit.senderName} />
             <BilgiSatırı etiket="Alıcı" değer={kayit.recipientName} />
-            <BilgiSatırı etiket="Aciliyet" değer={kayit.urgency} />
+            <Stack spacing={0.4}>
+              <Typography variant="caption" color="text.secondary">
+                Aciliyet
+              </Typography>
+              <Chip
+                size="small"
+                label={`Aciliyet: ${(kayit.urgency || 'Belirtilmedi').toString()}`}
+                color={getDurumRengi(kayit.urgency)}
+                sx={{ width: 'fit-content' }}
+              />
+            </Stack>
           </>
         )}
 
@@ -89,7 +149,17 @@ function RecordDetailPanel({ kayit }) {
           <>
             <Divider />
             <BilgiSatırı etiket="Şüpheli" değer={kayit.suspectName} />
-            <BilgiSatırı etiket="Güven" değer={kayit.confidence} />
+            <Stack spacing={0.4}>
+              <Typography variant="caption" color="text.secondary">
+                Güven Seviyesi
+              </Typography>
+              <Chip
+                size="small"
+                label={`Güven: ${(kayit.confidence || 'Belirtilmedi').toString()}`}
+                color={getDurumRengi(kayit.confidence)}
+                sx={{ width: 'fit-content' }}
+              />
+            </Stack>
           </>
         )}
 
@@ -102,6 +172,56 @@ function RecordDetailPanel({ kayit }) {
           <Typography variant="body2" color="text.secondary">
             {kayit.note || kayit.text || kayit.tip || 'Detay yok'}
           </Typography>
+        </Stack>
+
+        <Divider />
+
+        <Stack spacing={1}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
+            <Typography variant="caption" color="text.secondary">
+              Harita
+            </Typography>
+
+            {coordinates && (
+              <Link
+                href={mapOpenUrl}
+                target="_blank"
+                rel="noreferrer"
+                underline="hover"
+                sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.6 }}
+              >
+                Google Maps'te aç
+                <OpenInNewRoundedIcon sx={{ fontSize: 16 }} />
+              </Link>
+            )}
+          </Stack>
+
+          {coordinates ? (
+            <Box
+              sx={{
+                borderRadius: 2,
+                overflow: 'hidden',
+                border: '1px solid',
+                borderColor: 'divider',
+                height: 260,
+              }}
+            >
+              <Box
+                component="iframe"
+                title="Kayıt Konumu"
+                src={mapEmbedUrl}
+                width="100%"
+                height="100%"
+                sx={{ border: 0, display: 'block' }}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </Box>
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              Harita gösterimi için geçerli koordinat bulunamadı.
+            </Typography>
+          )}
         </Stack>
       </Stack>
     </Paper>
