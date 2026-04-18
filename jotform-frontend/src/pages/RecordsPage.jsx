@@ -1,5 +1,16 @@
 import FilterListRoundedIcon from '@mui/icons-material/FilterListRounded'
-import { Alert, Box, Card, CardContent, Chip, CircularProgress, Stack, Typography } from '@mui/material'
+import {
+  Alert,
+  Autocomplete,
+  Box,
+  Card,
+  CardContent,
+  Chip,
+  CircularProgress,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material'
 import { useEffect, useMemo, useState } from 'react'
 import RecordDetailPanel from '../components/records/RecordDetailPanel'
 import RecordListPanel from '../components/records/RecordListPanel'
@@ -41,6 +52,7 @@ function RecordsPage() {
   const [kayitlar, setKayitlar] = useState([])
   const [seciliKayitId, setSeciliKayitId] = useState('')
   const [arama, setArama] = useState('')
+  const [kisiFiltresi, setKisiFiltresi] = useState('')
 
   useEffect(() => {
     const yukle = async () => {
@@ -64,12 +76,33 @@ function RecordsPage() {
 
   const filtreliKayitlar = useMemo(() => {
     const query = arama.trim().toLocaleLowerCase('tr-TR')
-    if (!query) {
-      return kayitlar
-    }
+    const kisiQuery = kisiFiltresi.trim().toLocaleLowerCase('tr-TR')
 
-    return kayitlar.filter((record) => kayitAramaMetni(record).includes(query))
-  }, [kayitlar, arama])
+    return kayitlar.filter((record) => {
+      const matchesText = !query || kayitAramaMetni(record).includes(query)
+      if (!matchesText) {
+        return false
+      }
+
+      if (!kisiQuery) {
+        return true
+      }
+
+      const peopleText = (record.people || []).join(' ').toLocaleLowerCase('tr-TR')
+      return peopleText.includes(kisiQuery)
+    })
+  }, [kayitlar, arama, kisiFiltresi])
+
+  const kisiSecenekleri = useMemo(() => {
+    const unique = new Set(
+      kayitlar
+        .flatMap((record) => record.people || [])
+        .map((name) => name?.toString().trim())
+        .filter(Boolean),
+    )
+
+    return Array.from(unique).sort((a, b) => a.localeCompare(b, 'tr-TR'))
+  }, [kayitlar])
 
   const seciliKayit = useMemo(
     () => filtreliKayitlar.find((item) => item.id === seciliKayitId) || filtreliKayitlar[0] || null,
@@ -106,6 +139,18 @@ function RecordsPage() {
             <Typography color="text.secondary">
               Bu ekranda yalnızca seçtiğin formun kayıtları çekilir. Böylece gereksiz API isteği atılmaz.
             </Typography>
+
+            <Autocomplete
+              freeSolo
+              size="small"
+              options={kisiSecenekleri}
+              value={kisiFiltresi}
+              onInputChange={(_, newInputValue) => setKisiFiltresi(newInputValue)}
+              onChange={(_, newValue) => setKisiFiltresi(newValue || '')}
+              renderInput={(params) => (
+                <TextField {...params} label="Kişiye göre filtrele" placeholder="Örn: Podo" />
+              )}
+            />
 
             <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
               {FORM_SECENEKLERI.map((form) => (
