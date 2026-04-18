@@ -1,4 +1,5 @@
 import TimelineRoundedIcon from '@mui/icons-material/TimelineRounded'
+import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded'
 import {
   Alert,
   Box,
@@ -8,6 +9,7 @@ import {
   CircularProgress,
   Divider,
   InputAdornment,
+  Link,
   Stack,
   TextField,
   Typography,
@@ -48,6 +50,30 @@ function getEventAramaMetni(event) {
     .filter(Boolean)
     .join(' ')
     .toLocaleLowerCase('tr-TR')
+}
+
+function parseCoordinates(rawValue) {
+  if (!rawValue) {
+    return null
+  }
+
+  const parts = rawValue
+    .toString()
+    .split(',')
+    .map((item) => item.trim())
+
+  if (parts.length !== 2) {
+    return null
+  }
+
+  const lat = Number(parts[0])
+  const lng = Number(parts[1])
+
+  if (Number.isNaN(lat) || Number.isNaN(lng)) {
+    return null
+  }
+
+  return { lat, lng }
 }
 
 function EventFlowPage() {
@@ -92,6 +118,13 @@ function EventFlowPage() {
     () => filtreliEvents.find((item) => item.id === seciliEventId) || filtreliEvents[filtreliEvents.length - 1] || null,
     [filtreliEvents, seciliEventId],
   )
+
+  const coordinates = parseCoordinates(seciliEvent?.coordinates)
+  const mapQuery = coordinates ? `${coordinates.lat},${coordinates.lng}` : ''
+  const mapEmbedUrl = coordinates
+    ? `https://maps.google.com/maps?q=${encodeURIComponent(mapQuery)}&z=15&output=embed`
+    : ''
+  const mapOpenUrl = coordinates ? `https://www.google.com/maps?q=${encodeURIComponent(mapQuery)}` : ''
 
   if (yukleniyor) {
     return (
@@ -183,6 +216,11 @@ function EventFlowPage() {
                 </Typography>
                 <Typography variant="body2">{seciliEvent.location || 'Konum yok'}</Typography>
 
+                <Typography variant="body2" color="text.secondary">
+                  Koordinat
+                </Typography>
+                <Typography variant="body2">{seciliEvent.coordinates || 'Koordinat yok'}</Typography>
+
                 {seciliEvent.type === 'message' && (
                   <>
                     <Typography variant="body2" color="text.secondary">
@@ -198,6 +236,56 @@ function EventFlowPage() {
                   İçerik
                 </Typography>
                 <Typography variant="body2">{getDetayIcerik(seciliEvent)}</Typography>
+
+                <Divider />
+
+                <Stack spacing={1}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
+                    <Typography variant="body2" color="text.secondary">
+                      Harita
+                    </Typography>
+
+                    {coordinates && (
+                      <Link
+                        href={mapOpenUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        underline="hover"
+                        sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.6 }}
+                      >
+                        Google Maps'te aç
+                        <OpenInNewRoundedIcon sx={{ fontSize: 16 }} />
+                      </Link>
+                    )}
+                  </Stack>
+
+                  {coordinates ? (
+                    <Box
+                      sx={{
+                        borderRadius: 2,
+                        overflow: 'hidden',
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        height: 250,
+                      }}
+                    >
+                      <Box
+                        component="iframe"
+                        title="Seçili Olay Konumu"
+                        src={mapEmbedUrl}
+                        width="100%"
+                        height="100%"
+                        sx={{ border: 0, display: 'block' }}
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                      />
+                    </Box>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      Harita gösterimi için geçerli koordinat bulunamadı.
+                    </Typography>
+                  )}
+                </Stack>
               </Stack>
             ) : (
               <Typography color="text.secondary">Detay için soldan bir olay seç.</Typography>
