@@ -1,30 +1,110 @@
 import ArrowOutwardRoundedIcon from '@mui/icons-material/ArrowOutwardRounded'
-import HubRoundedIcon from '@mui/icons-material/HubRounded'
-import { Box, Button, Card, CardContent, Stack, Typography } from '@mui/material'
+import { Alert, Box, Button, Card, CardContent, CircularProgress, Stack, Typography } from '@mui/material'
+import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import MetricCard from '../components/dashboard/MetricCard'
-
-const metricItems = [
-  {
-    title: 'Eşleşen Profiller',
-    value: '--',
-    caption: 'Kaynaklar arası kimlik',
-    tone: 'primary.main',
-  },
-  {
-    title: 'Zaman Akışı Olayları',
-    value: '--',
-    caption: 'Zamana göre sıralı',
-    tone: 'secondary.main',
-  },
-  {
-    title: 'Açık İpuçları',
-    value: '--',
-    caption: 'Güven skoruna göre',
-    tone: '#0f766e',
-  },
-]
+import RecentEventsPanel from '../components/dashboard/RecentEventsPanel'
+import SourceBreakdownCard from '../components/dashboard/SourceBreakdownCard'
+import { ROUTES } from '../config/routes'
+import { fetchInvestigationBundle } from '../services/investigationService'
 
 function DashboardPage() {
+  const navigate = useNavigate()
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [allRecords, setAllRecords] = useState([])
+  const [people, setPeople] = useState([])
+
+  useEffect(() => {
+    const loadDashboard = async () => {
+      setLoading(true)
+      setError('')
+
+      try {
+        const bundle = await fetchInvestigationBundle()
+        setAllRecords(bundle.allRecords)
+        setPeople(bundle.people)
+      } catch (fetchError) {
+        setError(fetchError?.message || 'Dashboard verileri yüklenirken bir hata oluştu.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadDashboard()
+  }, [])
+
+  const metricItems = useMemo(() => {
+    const openLeads = allRecords.filter(
+      (record) =>
+        record.type === 'anonymous_tip' &&
+        ['high', 'medium'].includes((record.confidence || '').toString().toLowerCase()),
+    ).length
+
+    return [
+      {
+        title: 'Eşleşen Profiller',
+        value: people.length,
+        caption: 'Kaynaklar arası kimlik',
+        tone: 'primary.main',
+      },
+      {
+        title: 'Zaman Akışı Olayları',
+        value: allRecords.length,
+        caption: 'Zamana göre sıralı',
+        tone: 'secondary.main',
+      },
+      {
+        title: 'Açık İpuçları',
+        value: openLeads,
+        caption: 'High + Medium güven',
+        tone: '#0f766e',
+      },
+    ]
+  }, [allRecords, people])
+
+  const recentEvents = useMemo(() => {
+    return [...allRecords].sort((a, b) => b.sortTime - a.sortTime).slice(0, 6)
+  }, [allRecords])
+
+  const sourceRows = useMemo(() => {
+    const total = allRecords.length
+    if (!total) {
+      return []
+    }
+
+    const grouped = allRecords.reduce((acc, record) => {
+      const key = record.sourceLabel || 'Diğer'
+      acc[key] = (acc[key] || 0) + 1
+      return acc
+    }, {})
+
+    return Object.entries(grouped)
+      .map(([label, count]) => ({
+        label,
+        count,
+        percent: Math.max(6, Math.round((count / total) * 100)),
+      }))
+      .sort((a, b) => b.count - a.count)
+  }, [allRecords])
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent sx={{ py: 6 }}>
+          <Stack spacing={1.4} alignItems="center" justifyContent="center">
+            <CircularProgress size={34} />
+            <Typography color="text.secondary">Dashboard verileri hazırlanıyor...</Typography>
+          </Stack>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (error) {
+    return <Alert severity="error">{error}</Alert>
+  }
+
   return (
     <Stack spacing={2.2}>
       <Card
@@ -56,6 +136,7 @@ function DashboardPage() {
               variant="contained"
               color="secondary"
               endIcon={<ArrowOutwardRoundedIcon />}
+              onClick={() => navigate(ROUTES.EVENT_FLOW)}
               sx={{
                 alignSelf: { xs: 'stretch', md: 'auto' },
                 backgroundColor: '#fff',
@@ -65,7 +146,7 @@ function DashboardPage() {
                 },
               }}
             >
-              Soruşturmayı Başlat
+              Olay Akışına Git
             </Button>
           </Stack>
         </CardContent>
@@ -93,39 +174,11 @@ function DashboardPage() {
         sx={{
           display: 'grid',
           gap: 2,
-          gridTemplateColumns: { xs: '1fr', xl: '1.2fr 1fr' },
+          gridTemplateColumns: { xs: '1fr', xl: '1.15fr minmax(0, 1fr)' },
         }}
       >
-        <Card>
-          <CardContent>
-            <Typography variant="h6" sx={{ mb: 0.8 }}>
-              Kişi Gezintisi
-            </Typography>
-            <Typography color="text.secondary" sx={{ mb: 1.8 }}>
-              Sonraki committe arama yapılabilir kişi paneli ve bağlı kayıt listesi eklenecek.
-            </Typography>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <HubRoundedIcon color="primary" fontSize="small" />
-              <Typography variant="body2" color="text.secondary">
-                Kimlik eşleme motoru checkin, gözlem, not ve ipuçlarındaki takma adları birleştirecek.
-              </Typography>
-            </Stack>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent>
-            <Typography variant="h6" sx={{ mb: 0.8 }}>
-              Olay Akışı
-            </Typography>
-            <Typography color="text.secondary" sx={{ mb: 1.8 }}>
-              Zaman çizelgesi ve kayıt detay paneli bir sonraki iterasyonda eklenecek.
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Plan: bir kişi veya kayıt seçildiğinde ilişkili tüm detaylar anında gösterilecek.
-            </Typography>
-          </CardContent>
-        </Card>
+        <RecentEventsPanel events={recentEvents} />
+        <SourceBreakdownCard sourceRows={sourceRows} />
       </Box>
     </Stack>
   )
