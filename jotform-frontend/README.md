@@ -1,16 +1,106 @@
-# React + Vite
+# Jotform Frontend Challenge Project
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## User Information
+Please fill in your information after forking this repository:
 
-Currently, two official plugins are available:
+- **Name**: Erkim Berk Ünsal
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Project Description
+**Missing Podo: The Ankara Case** is an Investigation Dashboard built for the 3-hour Jotform Frontend Challenge. 
 
-## React Compiler
+The objective of this project is to track down Jotform's missing mascot, Podo, by consolidating scattered data from various API endpoints (Checkins, Messages, Sightings, Personal Notes, and Anonymous Tips). The application normalizes these disparate data structures and presents them in a unified, chronological flow. 
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Getting Started
 
-## Expanding the ESLint configuration
+### Prerequisites
+- Node.js (v16 or higher)
+- npm or yarn
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Installation
+
+1. **Clone and navigate to the project:**
+```bash
+cd jotform-frontend
+```
+
+2. **Install dependencies:**
+```bash
+npm install
+```
+
+3. **Environment Setup:**
+   - Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+   - Fill in the Jotform API credentials and Form IDs in `.env`
+
+4. **Start the development server:**
+```bash
+npm run dev
+```
+The application will be available at `http://localhost:5173`
+
+### Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+
+### Project Structure
+```
+Jotform hackathon/
+└── jotform-frontend/
+   ├── .env.example
+   ├── DATA_SCHEMA.md
+   ├── package.json
+   └── src/
+      ├── App.jsx
+      ├── main.jsx
+      ├── components/
+      │   ├── dashboard/
+      │   │   ├── MetricCard.jsx
+      │   │   ├── RecentEventsPanel.jsx
+      │   │   └── SourceBreakdownCard.jsx
+      │   ├── layout/
+      │   │   ├── SidebarNav.jsx
+      │   │   └── TopBar.jsx
+      │   ├── people/
+      │   │   ├── LinkedRecordsPanel.jsx
+      │   │   └── PeopleListPanel.jsx
+      │   ├── records/
+      │   │   ├── RecordDetailPanel.jsx
+      │   │   └── RecordListPanel.jsx
+      │   └── timeline/
+      │       └── EventTimelineList.jsx
+      ├── config/
+      │   └── routes.js
+      ├── hooks/
+      │   └── useFetchSubmissions.jsx
+      ├── layouts/
+      │   └── InvestigationLayout.jsx
+      ├── pages/
+      │   ├── DashboardPage.jsx
+      │   ├── EventFlowPage.jsx
+      │   ├── PeoplePage.jsx
+      │   └── RecordsPage.jsx
+      ├── services/
+      │   ├── api.jsx
+      │   ├── dataService.js
+      │   └── investigationService.js
+      └── theme/
+         └── investigationTheme.js
+```
+
+   ## Further Improvements
+
+   - Add map clustering and route lines for timeline events to better visualize movement patterns.
+   - Add a scoring engine for suspicious activity based on urgency, confidence and frequency of mentions.
+   - Add export options (CSV/PDF) for selected records and investigation summaries.
+   - Add request caching and incremental updates to reduce repeated API calls.
+   - Add role-based UI modes (analyst, reviewer) and audit-friendly activity logs.
+
+   ## Hackathon Note
+
+   I started this hackathon about 30 minutes late because I ran into a Node.js-related issue at the beginning; I was about to ask my mentor for help but it looked like a very simple problem and I did not realize how quickly the time passed. I was still able to complete the project.
