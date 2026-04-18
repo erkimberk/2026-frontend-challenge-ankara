@@ -50,31 +50,57 @@ The application will be available at `http://localhost:5173`
 
 ### Project Structure
 ```
-jotform-frontend/
-├── src/
-│   ├── services/api.jsx          # Jotform API client
-│   ├── hooks/useFetchSubmissions.jsx  # Data fetching hook
-│   ├── components/               # React components
-│   └── App.jsx                   # Main app
-├── .env                          # API credentials
-└── package.json
+Jotform hackathon/
+└── jotform-frontend/
+   ├── .env.example
+   ├── DATA_SCHEMA.md
+   ├── package.json
+   └── src/
+      ├── App.jsx
+      ├── main.jsx
+      ├── components/
+      │   ├── dashboard/
+      │   │   ├── MetricCard.jsx
+      │   │   ├── RecentEventsPanel.jsx
+      │   │   └── SourceBreakdownCard.jsx
+      │   ├── layout/
+      │   │   ├── SidebarNav.jsx
+      │   │   └── TopBar.jsx
+      │   ├── people/
+      │   │   ├── LinkedRecordsPanel.jsx
+      │   │   └── PeopleListPanel.jsx
+      │   ├── records/
+      │   │   ├── RecordDetailPanel.jsx
+      │   │   └── RecordListPanel.jsx
+      │   └── timeline/
+      │       └── EventTimelineList.jsx
+      ├── config/
+      │   └── routes.js
+      ├── hooks/
+      │   └── useFetchSubmissions.jsx
+      ├── layouts/
+      │   └── InvestigationLayout.jsx
+      ├── pages/
+      │   ├── DashboardPage.jsx
+      │   ├── EventFlowPage.jsx
+      │   ├── PeoplePage.jsx
+      │   └── RecordsPage.jsx
+      ├── services/
+      │   ├── api.jsx
+      │   ├── dataService.js
+      │   └── investigationService.js
+      └── theme/
+         └── investigationTheme.js
 ```
 
-# 🚀 Challenge Duyurusu
+   ## Further Improvements
 
-## 📅 Tarih ve Saat
-Cumartesi günü başlama saatinden itibaren üç saattir.
+   - Add map clustering and route lines for timeline events to better visualize movement patterns.
+   - Add a scoring engine for suspicious activity based on urgency, confidence and frequency of mentions.
+   - Add export options (CSV/PDF) for selected records and investigation summaries.
+   - Add request caching and incremental updates to reduce repeated API calls.
+   - Add role-based UI modes (analyst, reviewer) and audit-friendly activity logs.
 
-## 🎯 Challenge Konsepti
-Bu challenge'da, size özel hazırlanmış bir senaryo üzerine web uygulaması geliştirmeniz istenecektir. Challenge başlangıcında senaryo detayları paylaşılacaktır.Katılımcılar, verilen GitHub reposunu fork ederek kendi geliştirme ortamlarını oluşturacaklardır.
+   ## Hackathon Note
 
-## 📦 GitHub Reposu
-Challenge için kullanılacak repo: https://github.com/cemjotform/2026-frontend-challenge-ankara
-
-## 🛠️ Hazırlık Süreci
-1. GitHub reposunu fork edin
-2. Tercih ettiğiniz framework ile geliştirme ortamınızı hazırlayın
-3. Hazırladığınız setup'ı fork ettiğiniz repoya gönderin
-
-## 💡 Önemli Notlar
-- Katılımcılar kendi tercih ettikleri framework'leri kullanabilirler
+   I started this hackathon about 30 minutes late because I ran into a Node.js-related issue at the beginning; I was about to ask my mentor for help but it looked like a very simple problem and I did not realize how quickly the time passed. I was still able to complete the project.
