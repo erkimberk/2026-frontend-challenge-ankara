@@ -1,7 +1,7 @@
 # Jotform Frontend Challenge Project
 
 ## User Information
-Please fill in your information after forking this repository:
+
 
 - **Name**: Erkim Berk Ünsal
 
