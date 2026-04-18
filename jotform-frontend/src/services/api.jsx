@@ -18,6 +18,18 @@ export const FORM_IDS = {
   ANONYMOUS_TIPS: import.meta.env.VITE_FORM_ID_ANONYMOUS_TIPS,
 }
 
+const FORM_RESULT_KEYS = {
+  CHECKINS: 'checkins',
+  MESSAGES: 'messages',
+  SIGHTINGS: 'sightings',
+  PERSONAL_NOTES: 'personalNotes',
+  ANONYMOUS_TIPS: 'anonymousTips',
+}
+
+const ALL_FORM_KEYS = Object.keys(FORM_IDS)
+
+const getFormPayload = (response) => response.content || response.submissions || []
+
 // Jotform API'den form submissions'ları çekmek
 export const fetchFormSubmissions = async (formId) => {
   try {
@@ -31,24 +43,26 @@ export const fetchFormSubmissions = async (formId) => {
 
 // Tüm Investigation verilerini çek
 export const fetchAllInvestigationData = async () => {
-  try {
-    const [checkins, messages, sightings, personalNotes, anonymousTips] = await Promise.all([
-      fetchFormSubmissions(FORM_IDS.CHECKINS),
-      fetchFormSubmissions(FORM_IDS.MESSAGES),
-      fetchFormSubmissions(FORM_IDS.SIGHTINGS),
-      fetchFormSubmissions(FORM_IDS.PERSONAL_NOTES),
-      fetchFormSubmissions(FORM_IDS.ANONYMOUS_TIPS),
-    ])
+  return fetchInvestigationDataByForms(ALL_FORM_KEYS)
+}
 
-    return {
-      checkins: checkins.submissions || [],
-      messages: messages.submissions || [],
-      sightings: sightings.submissions || [],
-      personalNotes: personalNotes.submissions || [],
-      anonymousTips: anonymousTips.submissions || [],
-    }
+// Sadece seçilen formları çek
+export const fetchInvestigationDataByForms = async (formKeys = []) => {
+  try {
+    const targetFormKeys = (formKeys.length > 0 ? formKeys : ALL_FORM_KEYS).filter(
+      (formKey) => FORM_IDS[formKey],
+    )
+
+    const entries = await Promise.all(
+      targetFormKeys.map(async (formKey) => {
+        const response = await fetchFormSubmissions(FORM_IDS[formKey])
+        return [FORM_RESULT_KEYS[formKey], getFormPayload(response)]
+      }),
+    )
+
+    return Object.fromEntries(entries)
   } catch (error) {
-    console.error('Investigation verisi çekilirken hata:', error)
+    console.error('Soruşturma verisi çekilirken hata:', error)
     throw error
   }
 }
