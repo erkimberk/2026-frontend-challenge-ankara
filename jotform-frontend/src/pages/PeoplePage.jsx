@@ -12,6 +12,7 @@ function PeoplePage() {
   const [recordsById, setRecordsById] = useState({})
   const [selectedPersonId, setSelectedPersonId] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedSources, setSelectedSources] = useState([])
 
   useEffect(() => {
     const load = async () => {
@@ -60,7 +61,7 @@ function PeoplePage() {
     [people, selectedPersonId],
   )
 
-  const relatedRecords = useMemo(() => {
+  const relatedRecordsRaw = useMemo(() => {
     if (!selectedPerson) {
       return []
     }
@@ -68,8 +69,48 @@ function PeoplePage() {
     return selectedPerson.records
       .map((recordId) => recordsById[recordId])
       .filter(Boolean)
-      .sort((a, b) => b.sortTime - a.sortTime)
   }, [selectedPerson, recordsById])
+
+  const sourceOptions = useMemo(() => {
+    const grouped = relatedRecordsRaw.reduce((acc, record) => {
+      const key = record.source
+      if (!acc[key]) {
+        acc[key] = { key, label: record.sourceLabel, count: 0 }
+      }
+      acc[key].count += 1
+      return acc
+    }, {})
+
+    return Object.values(grouped).sort((a, b) => b.count - a.count)
+  }, [relatedRecordsRaw])
+
+  useEffect(() => {
+    // Kisi degistiginde filtreyi sifirla; yeni kisi icin tum kaynaklar acik baslasin.
+    setSelectedSources([])
+  }, [selectedPersonId])
+
+  useEffect(() => {
+    const validKeys = new Set(sourceOptions.map((item) => item.key))
+    setSelectedSources((previous) => previous.filter((key) => validKeys.has(key)))
+  }, [sourceOptions])
+
+  const relatedRecords = useMemo(() => {
+    const sorted = [...relatedRecordsRaw].sort((a, b) => b.sortTime - a.sortTime)
+    if (selectedSources.length === 0) {
+      return sorted
+    }
+
+    return sorted.filter((record) => selectedSources.includes(record.source))
+  }, [relatedRecordsRaw, selectedSources])
+
+  const toggleSource = (sourceKey) => {
+    setSelectedSources((previous) => {
+      if (previous.includes(sourceKey)) {
+        return previous.filter((item) => item !== sourceKey)
+      }
+      return [...previous, sourceKey]
+    })
+  }
 
   if (loading) {
     return (
@@ -101,6 +142,27 @@ function PeoplePage() {
             <Typography color="text.secondary">
               Bir kişi seçildiğinde check-in, mesaj, gözlem, not ve anonim ipucu kaynaklarındaki bağlı kayıtları birlikte görüntüleyebilirsin.
             </Typography>
+
+            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
+              <Chip
+                label="Tümü"
+                clickable
+                onClick={() => setSelectedSources([])}
+                color={selectedSources.length === 0 ? 'primary' : 'default'}
+                variant={selectedSources.length === 0 ? 'filled' : 'outlined'}
+              />
+
+              {sourceOptions.map((option) => (
+                <Chip
+                  key={option.key}
+                  label={`${option.label} (${option.count})`}
+                  clickable
+                  onClick={() => toggleSource(option.key)}
+                  color={selectedSources.includes(option.key) ? 'primary' : 'default'}
+                  variant={selectedSources.includes(option.key) ? 'filled' : 'outlined'}
+                />
+              ))}
+            </Stack>
           </Stack>
         </CardContent>
       </Card>
